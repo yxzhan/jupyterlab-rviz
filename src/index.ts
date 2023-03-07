@@ -4,6 +4,10 @@ import {
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
 
+import { ILauncher } from '@jupyterlab/launcher';
+import { LabIcon } from '@jupyterlab/ui-components';
+import iconStr from '../style/robot.svg';
+
 import {
   ICommandPalette,
   MainAreaWidget,
@@ -15,7 +19,11 @@ import RVIZWidget from './RVIZ';
 /**
  * Initialization data for the jupyterlab_rviz extension.
  */
-function activate(app: JupyterFrontEnd, palette: ICommandPalette, restorer: ILayoutRestorer | null) {
+function activate(
+  app: JupyterFrontEnd,
+  palette: ICommandPalette,
+  launcher: ILauncher | null,
+  restorer: ILayoutRestorer | null) {
   console.log('JupyterLab extension jupyterlab_rviz is activated!');
 
   // Declare a widget variable
@@ -24,8 +32,15 @@ function activate(app: JupyterFrontEnd, palette: ICommandPalette, restorer: ILay
   // Add an application command
   const command: string = 'rviz:open';
 
+  const icon = new LabIcon({
+    name: 'launcher:rviz-icon',
+    svgstr: iconStr,
+  });
+
   app.commands.addCommand(command, {
-    label: 'Open Rvizweb',
+    caption: 'Open Rvizweb',
+    label: (args) => (args['isPalette'] ? 'Open Rvizweb' : 'Rvizweb'),
+    icon: (args) => (args['isPalette'] ? '' : icon),
     execute: () => {
       if (!widget || widget.isDisposed) {
         const content = new RVIZWidget();
@@ -40,7 +55,7 @@ function activate(app: JupyterFrontEnd, palette: ICommandPalette, restorer: ILay
       }
       if (!widget.isAttached) {
         // Attach the widget to the main work area if it's not there
-        app.shell.add(widget, 'main');
+        app.shell.add(widget, 'main', { mode: 'split-right' });
       }
 
       // Activate the widget
@@ -49,7 +64,14 @@ function activate(app: JupyterFrontEnd, palette: ICommandPalette, restorer: ILay
   });
 
   // Add the command to the palette.
-  palette.addItem({ command, category: 'Tutorial' });
+  palette.addItem({ command, category: 'Visualization' });
+
+  if (launcher) {
+    launcher.add({
+      command,
+      rank: 1,
+    });
+  }
 
   // Track and restore the widget state
   let tracker = new WidgetTracker<MainAreaWidget<RVIZWidget>>({
@@ -67,7 +89,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
   id: 'jupyterlab_rviz',
   autoStart: true,
   requires: [ICommandPalette],
-  optional: [ILayoutRestorer],
+  optional: [ILauncher, ILayoutRestorer],
   activate: activate
 };
 

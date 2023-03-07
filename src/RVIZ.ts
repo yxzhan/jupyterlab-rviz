@@ -6,10 +6,10 @@ class RVIZWidget extends Widget {
     */
     constructor() {
       super();
-  
       this.addClass('my-apodWidget');
       this.iframe = document.createElement('iframe');
-      this.iframe.src = 'http://localhost:8001/rvizweb/www/index.html';
+      this.iframe.src = `http://${location.hostname}:8001/rvizweb/www/index.html`;
+      // this.iframe.src = `http://127.0.0.1:5501/examples/urdf.html`;
       this.iframe.style.width = '100%';
       this.iframe.style.height = '100%';
       this.node.appendChild(this.iframe);
