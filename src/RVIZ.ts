@@ -12,7 +12,7 @@ class RVIZWidget extends Widget {
       // Construct URL of our proxied service
       this.addClass('my-apodWidget');
       this.iframe = document.createElement('iframe');
-      let rvizUrl = `${baseUrl}proxy/8001/rvizweb/www/index.html?client=jupyterhub`;
+      let rvizUrl = `${baseUrl}proxy/8001/rvizweb/www/index.html?baseurl=${baseUrl}`;
       console.log('rvizweb url:', rvizUrl)
       this.iframe.src = rvizUrl;
       this.iframe.style.width = '100%';
