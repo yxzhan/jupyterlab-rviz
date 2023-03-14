@@ -1,4 +1,5 @@
 import { Widget } from '@lumino/widgets';
+import { PageConfig } from '@jupyterlab/coreutils';
 
 class RVIZWidget extends Widget {
     /**
@@ -6,10 +7,12 @@ class RVIZWidget extends Widget {
     */
     constructor() {
       super();
+      // Get base URL of current notebook server
+      let baseUrl = PageConfig.getBaseUrl()
+      // Construct URL of our proxied service
       this.addClass('my-apodWidget');
       this.iframe = document.createElement('iframe');
-      this.iframe.src = `http://${location.hostname}:8001/rvizweb/www/index.html`;
-      // this.iframe.src = `http://127.0.0.1:5501/examples/urdf.html`;
+      this.iframe.src = `http://${baseUrl}/proxy/8001/rvizweb/www/index.html?client=jupyterhub`;
       this.iframe.style.width = '100%';
       this.iframe.style.height = '100%';
       this.node.appendChild(this.iframe);
