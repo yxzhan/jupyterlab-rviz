@@ -4,49 +4,80 @@ import {
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
 
-import { ILauncher } from '@jupyterlab/launcher';
-import { LabIcon } from '@jupyterlab/ui-components';
-import iconStr from '../style/robot.svg';
-
 import {
   ICommandPalette,
   MainAreaWidget,
   WidgetTracker
 } from '@jupyterlab/apputils';
 
-import RVIZWidget from './RVIZ';
+import { ILauncher } from '@jupyterlab/launcher';
+import { LabIcon } from '@jupyterlab/ui-components';
+import { PageConfig } from '@jupyterlab/coreutils';
+import { DockLayout } from '@lumino/widgets';
+
+import IFrameWidget from './iframe';
+import iconStr from '../style/Ros_logo.svg';
+
+const BASE_URL = PageConfig.getBaseUrl()
 
 /**
  * Initialization data for the jupyterlab_rviz extension.
  */
-function activate(
+async function activate (
   app: JupyterFrontEnd,
   palette: ICommandPalette,
   launcher: ILauncher | null,
   restorer: ILayoutRestorer | null) {
   console.log('JupyterLab extension jupyterlab_rviz is activated!');
 
-  // Declare a widget variable
-  let widget: MainAreaWidget<RVIZWidget>;
+  let response = await fetch(`${BASE_URL}proxy/8001/rvizweb/jupyter-apps/app.json`);
+  if (!response.ok) {
+    const data = await response.json();
+    if (data.error) {
+      console.log(data.error)
+    }
+    return;
+  }
+  const RvizApps:any[] = await response.json();
+
+  for (let appConfig of RvizApps) {
+    response = await fetch(`${BASE_URL}${appConfig.icon}`);
+    if (response.ok) {
+      appConfig.iconStr = await response.text();
+    }
+    initRvizApp(app, palette, launcher, restorer, appConfig, RvizApps.indexOf(appConfig))
+  }
+};
+
+function initRvizApp (
+  app: JupyterFrontEnd,
+  palette: ICommandPalette,
+  launcher: ILauncher | null,
+  restorer: ILayoutRestorer | null,
+  appConfig: {[key: string]: string},
+  rank: number | undefined) {
+
+  // Declare widget variables
+  let widget: MainAreaWidget<IFrameWidget>;
+  let url = `${BASE_URL}${appConfig.url}?baseurl=${BASE_URL}`;
 
   // Add an application command
-  const command: string = 'rviz:open';
-
+  const command: string = `rviz:${appConfig.name}`;
   const icon = new LabIcon({
-    name: 'launcher:rviz-icon',
-    svgstr: iconStr,
+    name: `launcher:${appConfig.name}`,
+    svgstr: appConfig.iconStr || iconStr,
   });
 
   app.commands.addCommand(command, {
-    caption: 'Open Rvizweb',
-    label: (args) => (args['isPalette'] ? 'Open Rvizweb' : 'Rvizweb'),
+    caption: appConfig.title,
+    label: (args) => (args['isPalette'] ? `Open ${appConfig.title}` : appConfig.title),
     icon: (args) => (args['isPalette'] ? '' : icon),
     execute: () => {
       if (!widget || widget.isDisposed) {
-        const content = new RVIZWidget();
+        const content = new IFrameWidget(url);
         widget = new MainAreaWidget({content});
-        widget.id = 'rviz-jupyterlab';
-        widget.title.label = 'Rvizweb';
+        widget.id = `rviz-${appConfig.name}`;
+        widget.title.label = appConfig.title;
         widget.title.closable = true;
       }
       if (!tracker.has(widget)) {
@@ -55,35 +86,36 @@ function activate(
       }
       if (!widget.isAttached) {
         // Attach the widget to the main work area if it's not there
-        app.shell.add(widget, 'main', { mode: 'split-right' });
+        let mode = appConfig.mode as DockLayout.InsertMode ;
+        app.shell.add(widget, 'main', { mode });
       }
 
       // Activate the widget
       app.shell.activateById(widget.id);
     }
   });
-
   // Add the command to the palette.
-  palette.addItem({ command, category: 'Visualization' });
+  palette.addItem({ command, category: 'Robotics' });
 
   if (launcher) {
     launcher.add({
       command,
-      rank: 1,
+      category: 'Robotics',
+      rank
     });
   }
 
   // Track and restore the widget state
-  let tracker = new WidgetTracker<MainAreaWidget<RVIZWidget>>({
-    namespace: 'rviz'
+  let tracker = new WidgetTracker<MainAreaWidget<IFrameWidget>>({
+    namespace: `rviz-${appConfig.name}`
   });
   if (restorer) {
     restorer.restore(tracker, {
       command,
-      name: () => 'rviz'
+      name: () => `rviz-${appConfig.name}`
     });
   }
-};
+}
 
 const plugin: JupyterFrontEndPlugin<void> = {
   id: 'jupyterlab_rviz',
