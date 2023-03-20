@@ -30,7 +30,7 @@ async function activate (
   restorer: ILayoutRestorer | null) {
   console.log('JupyterLab extension jupyterlab_rviz is activated!');
 
-  let response = await fetch(`${BASE_URL}proxy/8001/rvizweb/jupyter-apps/app.json`);
+  let response = await fetch(`${BASE_URL}proxy/8001/rvizweb/webapps/app.json`);
   if (!response.ok) {
     const data = await response.json();
     if (data.error) {
