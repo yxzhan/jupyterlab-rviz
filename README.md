@@ -43,7 +43,7 @@ jupyter labextension develop . --overwrite
 # Rebuild extension Typescript source after making changes
 
 mamba activate jupyterlab-ext
-jlpm build
+jlpm build && \
 python -m build -s
 ```
 

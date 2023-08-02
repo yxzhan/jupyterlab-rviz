@@ -61,6 +61,14 @@ function initRvizApp (
   let widget: MainAreaWidget<IFrameWidget>;
   let url = `${BASE_URL}${appConfig.url}?baseurl=${BASE_URL}`;
 
+  // Hard code for webviz url parameter
+  // Have not figured out a better solution :(
+  if (appConfig.name === 'webviz') {
+    let wsUrl = new URL(BASE_URL);
+    wsUrl.protocol = wsUrl.protocol === 'https:' ? 'wss:' : 'ws'
+    url = `${BASE_URL}${appConfig.url}?rosbridge-websocket-url=${wsUrl.href}proxy/9090`;
+  }
+
   // Add an application command
   const command: string = `rviz:${appConfig.name}`;
   const icon = new LabIcon({
@@ -102,6 +110,13 @@ function initRvizApp (
       command,
       category: 'Robotics',
       rank
+    });
+  }
+  if (appConfig.start) {
+    app.commands.execute(command, { origin: 'init' }).catch((reason) => {
+      console.error(
+        `An error occurred during the execution of ${command}.\n${reason}`
+      );
     });
   }
 
