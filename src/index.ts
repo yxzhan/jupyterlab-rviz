@@ -70,6 +70,7 @@ function initRvizApp (
   }
 
   // Add an application command
+  const closable = appConfig.closable !== undefined ? Boolean(appConfig.closable) : true;
   const command: string = `rviz:${appConfig.name}`;
   const icon = new LabIcon({
     name: `launcher:${appConfig.name}`,
@@ -86,7 +87,7 @@ function initRvizApp (
         widget = new MainAreaWidget({content});
         widget.id = `rviz-${appConfig.name}`;
         widget.title.label = appConfig.title;
-        widget.title.closable = true;
+        widget.title.closable = closable;
       }
       if (!tracker.has(widget)) {
         // Track the state of the widget for later restoration
