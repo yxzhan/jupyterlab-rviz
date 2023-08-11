@@ -16,7 +16,7 @@ import { PageConfig } from '@jupyterlab/coreutils';
 import { DockLayout } from '@lumino/widgets';
 
 import IFrameWidget from './iframe';
-import iconStr from '../style/Ros_logo.svg';
+import iconStr from '../style/R.svg';
 
 const BASE_URL = PageConfig.getBaseUrl()
 
@@ -45,7 +45,14 @@ async function activate (
     if (response.ok) {
       appConfig.iconStr = await response.text();
     }
-    initRvizApp(app, palette, launcher, restorer, appConfig, RvizApps.indexOf(appConfig))
+    let command = initRvizApp(app, palette, launcher, restorer, appConfig, RvizApps.indexOf(appConfig))
+    if (appConfig.start) {
+      app.commands.execute(command, { origin: 'init' }).catch((reason) => {
+        console.error(
+          `An error occurred during the execution of ${command}.\n${reason}`
+        );
+      });
+    }
   }
 };
 
@@ -113,13 +120,6 @@ function initRvizApp (
       rank
     });
   }
-  if (appConfig.start) {
-    app.commands.execute(command, { origin: 'init' }).catch((reason) => {
-      console.error(
-        `An error occurred during the execution of ${command}.\n${reason}`
-      );
-    });
-  }
 
   // Track and restore the widget state
   let tracker = new WidgetTracker<MainAreaWidget<IFrameWidget>>({
@@ -131,6 +131,7 @@ function initRvizApp (
       name: () => `rviz-${appConfig.name}`
     });
   }
+  return command
 }
 
 const plugin: JupyterFrontEndPlugin<void> = {
