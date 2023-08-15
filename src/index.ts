@@ -16,7 +16,7 @@ import { PageConfig } from '@jupyterlab/coreutils';
 import { DockLayout } from '@lumino/widgets';
 
 import IFrameWidget from './iframe';
-import iconStr from '../style/R.svg';
+import iconStr from '../style/logo_jupyter.svg';
 
 const BASE_URL = PageConfig.getBaseUrl()
 
@@ -41,11 +41,7 @@ async function activate (
   const RvizApps:any[] = await response.json();
 
   for (let appConfig of RvizApps) {
-    response = await fetch(`${BASE_URL}${appConfig.icon}`);
-    if (response.ok) {
-      appConfig.iconStr = await response.text();
-    }
-    let command = initRvizApp(app, palette, launcher, restorer, appConfig, RvizApps.indexOf(appConfig))
+    let command = await initRvizApp(app, palette, launcher, restorer, appConfig, RvizApps.indexOf(appConfig))
     if (appConfig.start) {
       app.commands.execute(command, { origin: 'init' }).catch((reason) => {
         console.error(
@@ -56,7 +52,7 @@ async function activate (
   }
 };
 
-function initRvizApp (
+async function initRvizApp (
   app: JupyterFrontEnd,
   palette: ICommandPalette,
   launcher: ILauncher | null,
@@ -66,7 +62,21 @@ function initRvizApp (
 
   // Declare widget variables
   let widget: MainAreaWidget<IFrameWidget>;
-  let url = `${BASE_URL}${appConfig.url}?baseurl=${BASE_URL}`;
+  let url = BASE_URL;
+  let iconUrl = appConfig.url;
+  
+  // Check internal or external URL
+  try {
+    url = `${new URL(appConfig.url).href}?baseurl=${BASE_URL}`;
+  } catch (error) {
+    url = `${BASE_URL}${appConfig.url}?baseurl=${BASE_URL}`;
+    console.log(url)
+  }
+  try {
+    iconUrl = new URL(appConfig.icon).href;
+  } catch (error) {
+    iconUrl = `${BASE_URL}${appConfig.icon}`;
+  }
 
   // Hard code for webviz url parameter
   // Have not figured out a better solution :(
@@ -74,6 +84,12 @@ function initRvizApp (
     let wsUrl = new URL(BASE_URL);
     wsUrl.protocol = wsUrl.protocol === 'https:' ? 'wss:' : 'ws'
     url = `${BASE_URL}${appConfig.url}?rosbridge-websocket-url=${wsUrl.href}proxy/9090`;
+  }
+
+  // Get icon svg
+  let response = await fetch(iconUrl);
+  if (response.ok) {
+    appConfig.iconStr = await response.text();
   }
 
   // Add an application command
