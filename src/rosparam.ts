@@ -12,7 +12,6 @@ export function setRosParamsFromUrl(baseUrl: string) {
       console.log('Set ros param:', key, value)
     });
   }
-  ros.close()
 }
 
 function createRos(url: string) {

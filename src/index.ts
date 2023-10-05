@@ -30,7 +30,7 @@ async function activate(
   launcher: ILauncher | null,
   restorer: ILayoutRestorer | null) {
   console.log('JupyterLab extension jupyterlab_rviz is activated!');
-  setRosParamsFromUrl(BASE_URL);
+  await setRosParamsFromUrl(BASE_URL);
 
   let response = await fetch(`${BASE_URL}proxy/8001/rvizweb/webapps/app.json`);
   if (!response.ok) {
