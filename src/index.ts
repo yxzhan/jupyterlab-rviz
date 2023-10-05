@@ -16,6 +16,7 @@ import { PageConfig } from '@jupyterlab/coreutils';
 import { DockLayout } from '@lumino/widgets';
 
 import IFrameWidget from './iframe';
+import { setRosParamsFromUrl } from './rosparam';
 import iconStr from '../style/logo_jupyter.svg';
 
 const BASE_URL = PageConfig.getBaseUrl()
@@ -23,12 +24,13 @@ const BASE_URL = PageConfig.getBaseUrl()
 /**
  * Initialization data for the jupyterlab_rviz extension.
  */
-async function activate (
+async function activate(
   app: JupyterFrontEnd,
   palette: ICommandPalette,
   launcher: ILauncher | null,
   restorer: ILayoutRestorer | null) {
   console.log('JupyterLab extension jupyterlab_rviz is activated!');
+  setRosParamsFromUrl(BASE_URL);
 
   let response = await fetch(`${BASE_URL}proxy/8001/rvizweb/webapps/app.json`);
   if (!response.ok) {
@@ -38,7 +40,7 @@ async function activate (
     }
     return;
   }
-  const RvizApps:any[] = await response.json();
+  const RvizApps: any[] = await response.json();
 
   for (let appConfig of RvizApps) {
     let command = await initRvizApp(app, palette, launcher, restorer, appConfig, RvizApps.indexOf(appConfig))
@@ -52,19 +54,19 @@ async function activate (
   }
 };
 
-async function initRvizApp (
+async function initRvizApp(
   app: JupyterFrontEnd,
   palette: ICommandPalette,
   launcher: ILauncher | null,
   restorer: ILayoutRestorer | null,
-  appConfig: {[key: string]: string},
+  appConfig: { [key: string]: string },
   rank: number | undefined) {
 
   // Declare widget variables
   let widget: MainAreaWidget<IFrameWidget>;
   let url = BASE_URL;
   let iconUrl = appConfig.url;
-  
+
   // Check internal or external URL
   try {
     url = `${new URL(appConfig.url).href}?baseurl=${BASE_URL}`;
@@ -107,7 +109,7 @@ async function initRvizApp (
     execute: () => {
       if (!widget || widget.isDisposed) {
         const content = new IFrameWidget(url);
-        widget = new MainAreaWidget({content});
+        widget = new MainAreaWidget({ content });
         widget.id = `rviz-${appConfig.name}`;
         widget.title.label = appConfig.title;
         widget.title.closable = closable;
@@ -118,7 +120,7 @@ async function initRvizApp (
       }
       if (!widget.isAttached) {
         // Attach the widget to the main work area if it's not there
-        let mode = appConfig.mode as DockLayout.InsertMode ;
+        let mode = appConfig.mode as DockLayout.InsertMode;
         app.shell.add(widget, 'main', { mode });
       }
 

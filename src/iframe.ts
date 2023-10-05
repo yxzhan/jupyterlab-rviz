@@ -6,11 +6,10 @@ class IFrameWidget extends Widget {
     */
     constructor(url: string) {
       super();
-      console.log(`Open url:\n${url}`)
+      console.log(`New robotics webapp:\n${url}`)
       const div = document.createElement("div");
       div.classList.add("iframe-widget");
       let iframe = document.createElement("iframe");
-      iframe = document.createElement('iframe');
       iframe.src = url;
       iframe.style.width = '100%';
       iframe.style.height = '100%';
