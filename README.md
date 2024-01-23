@@ -34,16 +34,32 @@ The `jlpm` command is JupyterLab's pinned version of
 `yarn` or `npm` in lieu of `jlpm` below.
 
 ```bash
-# Clone the repo to your local environment
-# Change directory to the jupyterlab_rviz directory
-# Install package in development mode
-pip install -e "."
-# Link your development version of the extension with JupyterLab
-jupyter labextension develop . --overwrite
-# Rebuild extension Typescript source after making changes
+# create a new environment
+conda env create
 
-mamba activate jupyterlab-ext
-jlpm build && \
+# activate the environment
+conda activate jupyterlab-extension-examples
+
+# go to the hello world example
+cd hello-world
+
+# Required to deal with Yarn 3 workspace rules
+touch yarn.lock
+
+# install the extension in editable mode
+python -m pip install -e .
+
+# install your development version of the extension with JupyterLab
+jupyter labextension develop . --overwrite
+
+# build the TypeScript source after making changes
+jlpm run build
+
+# start JupyterLab
+jupyter lab
+
+# Packaging extension
+pip install build
 python -m build -s
 ```
 
