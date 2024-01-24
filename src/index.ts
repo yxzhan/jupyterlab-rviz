@@ -4,6 +4,10 @@ import {
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
 
+// import {
+//   Mode
+// } from '@jupyterlab/codemirror'
+
 import {
   ICommandPalette,
   MainAreaWidget,
@@ -67,6 +71,11 @@ async function initRvizApp(
   let url = BASE_URL;
   let iconUrl = appConfig.url;
 
+  // Treat .launch file format as xml file
+  // Mode.getModeInfo().push({
+  //   name: "ROS Launch", mime: "application/xml", mode: "xml", ext: ["launch"]
+  // });
+
   // Check internal or external URL
   try {
     url = `${new URL(appConfig.url).href}?baseurl=${BASE_URL}`;
@@ -105,7 +114,7 @@ async function initRvizApp(
   app.commands.addCommand(command, {
     caption: appConfig.title,
     label: (args) => (args['isPalette'] ? `Open ${appConfig.title}` : appConfig.title),
-    icon: (args) => (args['isPalette'] ? '' : icon),
+    icon: icon,
     execute: () => {
       if (!widget || widget.isDisposed) {
         const content = new IFrameWidget(url);
